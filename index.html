@@ -58,9 +58,11 @@
       cursor: pointer;
       font-size: 1rem;
       margin: 0.5rem;
+      transition: all 0.3s;
     }
     button:hover {
       background: #3a5a8c;
+      transform: translateY(-2px);
     }
     .switch-lang {
       text-align: left;
@@ -97,27 +99,86 @@
     body[lang="en"] [data-lang="en"] { display: block; }
     body[lang="ar"] [data-lang="en"] { display: none; }
     body[lang="ar"] [data-lang="ar"] { display: block; }
-    /* تنسيقات جديدة */
+    
+    /* تنسيقات مولد العناوين */
     .title-suggestion {
-      margin: 8px 0;
-      padding: 8px;
-      background: #e9f5ff;
-      border-radius: 6px;
+      margin: 10px 0;
+      padding: 12px;
+      background: #f1f8fe;
+      border-radius: 8px;
+      border-left: 4px solid #4a6fa5;
+      transition: all 0.3s;
+    }
+    .title-suggestion:hover {
+      background: #e1f0fa;
+    }
+    .copy-btn {
+      background: #2c3e50;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      float: left;
+      margin-top: 5px;
+    }
+    
+    /* تنسيقات عداد العادات */
+    .habit-item {
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+    }
+    .habit-item.done {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      color: #2e7d32;
+    }
+    .habit-item .habit-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .habit-item .delete-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
     }
     .habit-input-container {
       display: flex;
-      margin: 10px 0;
+      gap: 10px;
+      margin: 15px 0;
     }
     #new-habit {
       flex-grow: 1;
-      padding: 8px;
+      padding: 10px;
       border: 1px solid #ddd;
       border-radius: 6px;
+      font-family: 'Tajawal', 'Roboto', sans-serif;
+    }
+    .suggested-habits {
+      margin: 15px 0;
     }
     .suggested-habits button {
-      margin: 4px;
-      padding: 6px 10px;
-      font-size: 0.9rem;
+      margin: 5px;
+      padding: 8px 12px;
+      background: #e3f2fd;
+      color: #1565c0;
+      border: none;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
@@ -158,7 +219,7 @@
       <div id="emoji-output" style="margin-top:20px; padding:15px; background:#f1f1f1; border-radius:8px; font-size:1.2rem;"></div>
     </div>
 
-    <!-- 🛠️ الأداة 3: عداد العادات القابل للتخصيص -->
+    <!-- 🛠️ الأداة 3: عداد العادات الذكي -->
     <div class="tool-card">
       <h2 data-lang="ar">✅ عداد العادات الذكي</h2>
       <h2 data-lang="en" style="display:none;">✅ Smart Habit Tracker</h2>
@@ -172,7 +233,7 @@
         <button onclick="addHabit()" data-lang="en" style="display:none;">Add</button>
       </div>
       
-      <div class="suggested-habits" style="margin:10px 0;">
+      <div class="suggested-habits">
         <p data-lang="ar">اختر من المقترحات:</p>
         <p data-lang="en" style="display:none;">Suggested habits:</p>
         <button onclick="addSuggestedHabit(this)" data-habit="شرب 2 لتر ماء" data-lang="ar">شرب ماء</button>
@@ -181,12 +242,14 @@
         <button onclick="addSuggestedHabit(this)" data-habit="Exercise" data-lang="en" style="display:none;">Exercise</button>
         <button onclick="addSuggestedHabit(this)" data-habit="قراءة كتاب" data-lang="ar">قراءة</button>
         <button onclick="addSuggestedHabit(this)" data-habit="Read a book" data-lang="en" style="display:none;">Reading</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="النوم مبكرًا" data-lang="ar">نوم مبكر</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="Early sleep" data-lang="en" style="display:none;">Early sleep</button>
       </div>
       
       <div id="habits-list" style="margin-top:15px;"></div>
     </div>
 
-    <!-- باقي المحتوى (المقالات) -->
+    <!-- 📝 المقالات -->
     <div class="article">
       <h2 data-lang="ar">📌 كيف توفر 10 ساعات أسبوعيًا بأدوات ذكاء اصطناعي مجانية؟</h2>
       <h2 data-lang="en" style="display:none;">📌 How to Save 10 Hours a Week with Free AI Tools?</h2>
@@ -208,7 +271,6 @@
     <p data-lang="en" style="display:none;">Made with love for global users</p>
   </footer>
 
-  <!-- الأكواد البرمجية للوظائف -->
   <script>
     // تبديل اللغة
     function switchLang(lang) {
@@ -228,7 +290,7 @@
       }
 
       const outputDiv = document.getElementById("titles-output");
-      outputDiv.innerHTML = '<div style="text-align:center; padding:20px;"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="تحميل"></div>';
+      outputDiv.innerHTML = '<div class="loading"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="تحميل"></div>';
       
       // محاكاة الذكاء الاصطناعي مع تأخير
       setTimeout(() => {
@@ -283,7 +345,7 @@
         html += `
           <div class="title-suggestion">
             <strong>${index + 1}. ${title}</strong>
-            <button onclick="copyTitle('${title.replace(/'/g, "\\'")}')" style="float:left; padding:4px 8px; font-size:0.8rem; margin-top:5px;">
+            <button class="copy-btn" onclick="copyTitle('${title.replace(/'/g, "\\'")}')">
               ${lang === 'ar' ? 'نسخ' : 'Copy'}
             </button>
           </div>
@@ -324,47 +386,38 @@
     function createHabitElement(habitText) {
       const habitsList = document.getElementById("habits-list");
       const habitDiv = document.createElement("div");
-      
+      habitDiv.className = "habit-item";
       habitDiv.innerHTML = `
-        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-          <span>${habitText}</span>
-          <button onclick="removeHabit(event, this.parentNode)" style="background:#ff6b6b; padding:2px 8px; font-size:0.8rem;">×</button>
+        <span class="habit-text">${habitText}</span>
+        <div class="habit-actions">
+          <button class="delete-btn" onclick="removeHabit(event)">×</button>
         </div>
       `;
-      
-      habitsList.appendChild(habitDiv.firstChild);
+      habitDiv.addEventListener("click", function() {
+        this.classList.toggle("done");
+        saveHabits();
+      });
+      habitsList.appendChild(habitDiv);
     }
 
-    function toggleHabit(el) {
-      const done = el.getAttribute("data-done") === "true";
-      if (done) {
-        el.style.background = "#f9f9f9";
-        el.style.color = "#212529";
-        el.style.textDecoration = "none";
-        el.setAttribute("data-done", "false");
-      } else {
-        el.style.background = "#4a6fa5";
-        el.style.color = "white";
-        el.style.textDecoration = "line-through";
-        el.setAttribute("data-done", "true");
-      }
-      saveHabits();
-    }
-
-    function removeHabit(event, habitElement) {
-      event.stopPropagation(); // لمنع تنشيط toggleHabit
-      habitElement.remove();
-      saveHabits();
+    function removeHabit(event) {
+      event.stopPropagation();
+      const habitItem = event.target.closest(".habit-item");
+      habitItem.classList.add("fade-out");
+      setTimeout(() => {
+        habitItem.remove();
+        saveHabits();
+      }, 300);
     }
 
     function saveHabits() {
       const habitsList = document.getElementById("habits-list");
       const habits = [];
       
-      habitsList.querySelectorAll("div").forEach(habit => {
+      habitsList.querySelectorAll(".habit-item").forEach(habit => {
         habits.push({
-          text: habit.querySelector("span").textContent,
-          done: habit.getAttribute("data-done") === "true"
+          text: habit.querySelector(".habit-text").textContent,
+          done: habit.classList.contains("done")
         });
       });
       
@@ -380,10 +433,7 @@
           if (habit.done) {
             const habitsList = document.getElementById("habits-list");
             const lastHabit = habitsList.lastChild;
-            lastHabit.style.background = "#4a6fa5";
-            lastHabit.style.color = "white";
-            lastHabit.style.textDecoration = "line-through";
-            lastHabit.setAttribute("data-done", "true");
+            lastHabit.classList.add("done");
           }
         });
       }
