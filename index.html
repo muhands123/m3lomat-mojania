@@ -97,6 +97,28 @@
     body[lang="en"] [data-lang="en"] { display: block; }
     body[lang="ar"] [data-lang="en"] { display: none; }
     body[lang="ar"] [data-lang="ar"] { display: block; }
+    /* تنسيقات جديدة */
+    .title-suggestion {
+      margin: 8px 0;
+      padding: 8px;
+      background: #e9f5ff;
+      border-radius: 6px;
+    }
+    .habit-input-container {
+      display: flex;
+      margin: 10px 0;
+    }
+    #new-habit {
+      flex-grow: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .suggested-habits button {
+      margin: 4px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body lang="ar" dir="rtl">
@@ -112,16 +134,16 @@
   </header>
 
   <div class="container">
-    <!-- 🛠️ الأداة 1: مولد العناوين -->
+    <!-- 🛠️ الأداة 1: مولد العناوين الذكي -->
     <div class="tool-card">
-      <h2 data-lang="ar">🤖 مُولّد عناوين جذابة</h2>
-      <h2 data-lang="en" style="display:none;">🤖 AI Title Generator</h2>
-      <p data-lang="ar">اكتب موضوعًا، وسأُولّد لك 5 عناوين جذابة.</p>
-      <p data-lang="en" style="display:none;">Enter a topic, get 5 viral titles.</p>
+      <h2 data-lang="ar">🤖 مُولّد عناوين ذكي</h2>
+      <h2 data-lang="en" style="display:none;">🤖 Smart Title Generator</h2>
+      <p data-lang="ar">اكتب موضوعًا، وسأُولّد لك عناوين جذابة باستخدام الذكاء الاصطناعي!</p>
+      <p data-lang="en" style="display:none;">Enter a topic, get AI-generated viral titles.</p>
       <input type="text" id="topic" placeholder="مثلاً: كيف أبدأ بالربح من الإنترنت؟" style="width:100%; padding:10px; margin:10px 0;" />
-      <button onclick="generateTitles()">(ar) ولّد العناوين</button>
-      <button onclick="generateTitles()" style="display:none;">Generate Titles (en)</button>
-      <div id="titles-output" style="margin-top:20px; padding:15px; background:#f1f1f1; border-radius:8px; white-space: pre-line;"></div>
+      <button onclick="generateSmartTitles()" data-lang="ar">ولّد العناوين الذكية</button>
+      <button onclick="generateSmartTitles()" data-lang="en" style="display:none;">Generate Smart Titles</button>
+      <div id="titles-output" style="margin-top:20px;"></div>
     </div>
 
     <!-- 🛠️ الأداة 2: النص إلى إيموجي -->
@@ -131,61 +153,45 @@
       <p data-lang="ar">اكتب نصًا عاديًا، وسأحول الكلمات الشائعة إلى إيموجي.</p>
       <p data-lang="en" style="display:none;">Type text, I'll convert common words to emojis.</p>
       <textarea id="text-input" placeholder="مثلاً: أنا سعيد اليوم ومستعد للعمل!" style="width:100%; height:80px; padding:10px; margin:10px 0;"></textarea>
-      <button onclick="convertToEmoji()">(ar) حول إلى إيموجي</button>
-      <button onclick="convertToEmoji()" style="display:none;">Convert to Emoji (en)</button>
+      <button onclick="convertToEmoji()" data-lang="ar">حول إلى إيموجي</button>
+      <button onclick="convertToEmoji()" data-lang="en" style="display:none;">Convert to Emoji</button>
       <div id="emoji-output" style="margin-top:20px; padding:15px; background:#f1f1f1; border-radius:8px; font-size:1.2rem;"></div>
     </div>
 
-    <!-- 🛠️ الأداة 3: عداد العادات -->
+    <!-- 🛠️ الأداة 3: عداد العادات القابل للتخصيص -->
     <div class="tool-card">
-      <h2 data-lang="ar">✅ عداد العادات اليومية</h2>
-      <h2 data-lang="en" style="display:none;">✅ Daily Habit Tracker</h2>
-      <p data-lang="ar">اضغط على العادة لتمييزها كمكتملة اليوم.</p>
-      <p data-lang="en" style="display:none;">Click a habit to mark it as done today.</p>
-      <div id="habits-list" style="margin-top:15px;">
-        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer;">شرب 2 لتر ماء</div>
-        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer;">ممارسة التمارين</div>
-        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer;">قراءة 10 صفحات</div>
-        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer;">كتابة مخطط اليوم</div>
+      <h2 data-lang="ar">✅ عداد العادات الذكي</h2>
+      <h2 data-lang="en" style="display:none;">✅ Smart Habit Tracker</h2>
+      <p data-lang="ar">أضف عاداتك الخاصة أو اختر من القائمة المقترحة</p>
+      <p data-lang="en" style="display:none;">Add your own habits or choose from suggestions</p>
+      
+      <div class="habit-input-container">
+        <input type="text" id="new-habit" placeholder="مثلاً: شرب 8 أكواب ماء" data-lang="ar">
+        <input type="text" id="new-habit" placeholder="e.g. Drink 8 glasses of water" data-lang="en" style="display:none;">
+        <button onclick="addHabit()" data-lang="ar">إضافة</button>
+        <button onclick="addHabit()" data-lang="en" style="display:none;">Add</button>
       </div>
+      
+      <div class="suggested-habits" style="margin:10px 0;">
+        <p data-lang="ar">اختر من المقترحات:</p>
+        <p data-lang="en" style="display:none;">Suggested habits:</p>
+        <button onclick="addSuggestedHabit(this)" data-habit="شرب 2 لتر ماء" data-lang="ar">شرب ماء</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="Drink water" data-lang="en" style="display:none;">Drink water</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="ممارسة الرياضة" data-lang="ar">تمارين</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="Exercise" data-lang="en" style="display:none;">Exercise</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="قراءة كتاب" data-lang="ar">قراءة</button>
+        <button onclick="addSuggestedHabit(this)" data-habit="Read a book" data-lang="en" style="display:none;">Reading</button>
+      </div>
+      
+      <div id="habits-list" style="margin-top:15px;"></div>
     </div>
 
-    <!-- 📝 المقالة 1 -->
+    <!-- باقي المحتوى (المقالات) -->
     <div class="article">
       <h2 data-lang="ar">📌 كيف توفر 10 ساعات أسبوعيًا بأدوات ذكاء اصطناعي مجانية؟</h2>
       <h2 data-lang="en" style="display:none;">📌 How to Save 10 Hours a Week with Free AI Tools?</h2>
       <p data-lang="ar">استخدم أدوات مثل "مولد العناوين" و"النص إلى إيموجي" لتوفير الوقت في كتابة المحتوى، التسويق، أو الدراسة. جرّبها الآن في الأعلى!</p>
       <p data-lang="en" style="display:none;">Use tools like the "Title Generator" and "Text to Emoji" to save time in content writing, marketing, or studying. Try them above!</p>
-    </div>
-
-    <!-- 📝 المقالة 2 -->
-    <div class="article">
-      <h2 data-lang="ar">📌 5 خطوات لإنشاء خطة يومية مثالية</h2>
-      <h2 data-lang="en" style="display:none;">📌 5 Steps to Create a Perfect Daily Plan</h2>
-      <ol data-lang="ar">
-        <li>حدد أولوياتك (3 مهام فقط)</li>
-        <li>خصص وقتًا لكل مهمة</li>
-        <li>استخدم عداد العادات أعلاه</li>
-        <li>تجنب الهاتف أول ساعة</li>
-        <li>راجع خطتك قبل النوم</li>
-      </ol>
-      <ol data-lang="en" style="display:none;">
-        <li>Define your priorities (only 3 tasks)</li>
-        <li>Allocate time for each task</li>
-        <li>Use the habit tracker above</li>
-        <li>Avoid your phone for the first hour</li>
-        <li>Review your plan before sleeping</li>
-      </ol>
-    </div>
-
-    <!-- 📌 رسالة بدء -->
-    <div class="tool-card">
-      <h2 data-lang="ar">🚀 ابدأ الآن</h2>
-      <h2 data-lang="en" style="display:none;">🚀 Get Started</h2>
-      <p data-lang="ar">استخدم الأدوات المجانية أدناه لتحسين عملك، دراستك، أو حياتك اليومية بدون أي تكلفة.</p>
-      <p data-lang="en" style="display:none;">Use the free tools below to improve your work, study, or daily life — at zero cost.</p>
-      <p data-lang="ar">كل ما نطلبه منك: إذا استفدت، شارك الموقع مع صديق!</p>
-      <p data-lang="en" style="display:none;">All we ask: if you benefit, share it with a friend!</p>
     </div>
 
     <!-- زر الدعم -->
@@ -204,53 +210,129 @@
 
   <!-- الأكواد البرمجية للوظائف -->
   <script>
+    // تبديل اللغة
     function switchLang(lang) {
       document.body.setAttribute('lang', lang);
       document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
       document.dir = lang === 'ar' ? 'rtl' : 'ltr';
     }
 
-    function generateTitles() {
+    // ========== مولد العناوين الذكي ==========
+    function generateSmartTitles() {
       const topic = document.getElementById("topic").value.trim();
       const lang = document.body.getAttribute("lang");
+      
       if (!topic) {
         alert(lang === "ar" ? "من فضلك اكتب موضوعًا" : "Please enter a topic");
         return;
       }
 
-      let titles;
-      if (lang === "ar") {
-        titles = `
-1. كيف تربح من الإنترنت في 2025 بدون رأس مال؟
-2. 7 طرق مضمونة للربح من الإنترنت للمبتدئين
-3. ابدأ الآن: دليل عملي للربح من العمل الحر
-4. كيف حولت هوايتي إلى مصدر دخل شهري؟
-5. 3 أدوات مجانية تضاعف إنتاجيتك من المنزل
-`;
-      } else {
-        titles = `
-1. How to Make Money Online in 2025 (No Investment)
-2. 7 Proven Ways to Earn Online as a Beginner
-3. Start Today: A Practical Guide to Freelancing
-4. How I Turned My Hobby into a Monthly Income
-5. 3 Free Tools That 10X Your Productivity at Home
-`;
-      }
-      document.getElementById("titles-output").textContent = titles;
+      const outputDiv = document.getElementById("titles-output");
+      outputDiv.innerHTML = '<div style="text-align:center; padding:20px;"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="تحميل"></div>';
+      
+      // محاكاة الذكاء الاصطناعي مع تأخير
+      setTimeout(() => {
+        const titles = generateAITitles(topic, lang);
+        displayTitles(titles, lang);
+      }, 800);
     }
 
-    function convertToEmoji() {
-      const text = document.getElementById("text-input").value;
-      const emojiMap = {
-        "سعيد": "😊", "فرحان": "😄", "غاضب": "😠", "نائم": "😴", "عمل": "💼", "دراسة": "📚",
-        "حب": "❤️", "قلبي": "💖", "نجاح": "🏆", "سرعة": "⚡", "ممتاز": "👍", "رائع": "🌟",
-        "coffee": "☕", "happy": "😊", "love": "❤️", "work": "💼", "study": "📚", "success": "🏆"
+    function generateAITitles(topic, lang) {
+      // قاعدة بيانات للأنماط المختلفة للعناوين
+      const patterns = {
+        ar: [
+          `كيف ${topic} في 5 خطوات بسيطة؟`,
+          `10 طرق مذهلة لـ ${topic}`,
+          `السر الذي لا يعرفه أحد عن ${topic}`,
+          `${topic}: الدليل النهائي للمبتدئين`,
+          `3 أخطاء قاتلة في ${topic} (تجنبها الآن!)`,
+          `كيف حولت ${topic} إلى مصدر دخل؟`,
+          `${topic} مثل المحترفين: أسرار الخبراء`
+        ],
+        en: [
+          `How to ${topic} in 5 Simple Steps`,
+          `10 Amazing Ways to ${topic}`,
+          `The Secret Nobody Tells You About ${topic}`,
+          `${topic}: The Ultimate Beginner's Guide`,
+          `3 Deadly Mistakes in ${topic} (Avoid Them!)`,
+          `How I Turned ${topic} Into Income`,
+          `${topic} Like a Pro: Expert Secrets`
+        ]
       };
-      let output = text;
-      for (const [key, value] of Object.entries(emojiMap)) {
-        output = output.replace(new RegExp(key, 'g'), value);
+      
+      // اختيار 5 عناوين عشوائية
+      const selectedTitles = [];
+      const usedIndices = new Set();
+      
+      while (selectedTitles.length < 5 && selectedTitles.length < patterns[lang].length) {
+        const randomIndex = Math.floor(Math.random() * patterns[lang].length);
+        if (!usedIndices.has(randomIndex)) {
+          selectedTitles.push(patterns[lang][randomIndex]);
+          usedIndices.add(randomIndex);
+        }
       }
-      document.getElementById("emoji-output").textContent = output;
+      
+      return selectedTitles;
+    }
+
+    function displayTitles(titles, lang) {
+      const outputDiv = document.getElementById("titles-output");
+      let html = '';
+      
+      titles.forEach((title, index) => {
+        html += `
+          <div class="title-suggestion">
+            <strong>${index + 1}. ${title}</strong>
+            <button onclick="copyTitle('${title.replace(/'/g, "\\'")}')" style="float:left; padding:4px 8px; font-size:0.8rem; margin-top:5px;">
+              ${lang === 'ar' ? 'نسخ' : 'Copy'}
+            </button>
+          </div>
+        `;
+      });
+      
+      outputDiv.innerHTML = html;
+    }
+
+    function copyTitle(title) {
+      navigator.clipboard.writeText(title);
+      const lang = document.body.getAttribute("lang");
+      alert(lang === "ar" ? "تم نسخ العنوان!" : "Title copied!");
+    }
+
+    // ========== عداد العادات الذكي ==========
+    function addHabit() {
+      const lang = document.body.getAttribute("lang");
+      const input = document.getElementById("new-habit");
+      const habitText = input.value.trim();
+      
+      if (!habitText) {
+        alert(lang === "ar" ? "من فضلك اكتب عادة جديدة" : "Please enter a habit");
+        return;
+      }
+      
+      createHabitElement(habitText);
+      input.value = "";
+      saveHabits();
+    }
+
+    function addSuggestedHabit(button) {
+      const habitText = button.getAttribute("data-habit");
+      createHabitElement(habitText);
+      saveHabits();
+    }
+
+    function createHabitElement(habitText) {
+      const habitsList = document.getElementById("habits-list");
+      const habitDiv = document.createElement("div");
+      
+      habitDiv.innerHTML = `
+        <div onclick="toggleHabit(this)" data-done="false" style="padding:10px; margin:5px 0; background:#f9f9f9; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+          <span>${habitText}</span>
+          <button onclick="removeHabit(event, this.parentNode)" style="background:#ff6b6b; padding:2px 8px; font-size:0.8rem;">×</button>
+        </div>
+      `;
+      
+      habitsList.appendChild(habitDiv.firstChild);
     }
 
     function toggleHabit(el) {
@@ -266,7 +348,66 @@
         el.style.textDecoration = "line-through";
         el.setAttribute("data-done", "true");
       }
+      saveHabits();
     }
+
+    function removeHabit(event, habitElement) {
+      event.stopPropagation(); // لمنع تنشيط toggleHabit
+      habitElement.remove();
+      saveHabits();
+    }
+
+    function saveHabits() {
+      const habitsList = document.getElementById("habits-list");
+      const habits = [];
+      
+      habitsList.querySelectorAll("div").forEach(habit => {
+        habits.push({
+          text: habit.querySelector("span").textContent,
+          done: habit.getAttribute("data-done") === "true"
+        });
+      });
+      
+      localStorage.setItem("userHabits", JSON.stringify(habits));
+    }
+
+    function loadHabits() {
+      const savedHabits = localStorage.getItem("userHabits");
+      if (savedHabits) {
+        const habits = JSON.parse(savedHabits);
+        habits.forEach(habit => {
+          const habitElement = createHabitElement(habit.text);
+          if (habit.done) {
+            const habitsList = document.getElementById("habits-list");
+            const lastHabit = habitsList.lastChild;
+            lastHabit.style.background = "#4a6fa5";
+            lastHabit.style.color = "white";
+            lastHabit.style.textDecoration = "line-through";
+            lastHabit.setAttribute("data-done", "true");
+          }
+        });
+      }
+    }
+
+    // ========== محول الإيموجي ==========
+    function convertToEmoji() {
+      const text = document.getElementById("text-input").value;
+      const emojiMap = {
+        "سعيد": "😊", "فرحان": "😄", "غاضب": "😠", "نائم": "😴", "عمل": "💼", "دراسة": "📚",
+        "حب": "❤️", "قلبي": "💖", "نجاح": "🏆", "سرعة": "⚡", "ممتاز": "👍", "رائع": "🌟",
+        "coffee": "☕", "happy": "😊", "love": "❤️", "work": "💼", "study": "📚", "success": "🏆"
+      };
+      let output = text;
+      for (const [key, value] of Object.entries(emojiMap)) {
+        output = output.replace(new RegExp(key, 'g'), value);
+      }
+      document.getElementById("emoji-output").textContent = output;
+    }
+
+    // تحميل العادات عند بدء التشغيل
+    window.onload = function() {
+      loadHabits();
+    };
   </script>
 </body>
 </html>
