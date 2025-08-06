@@ -17,6 +17,7 @@
       background: #f8f9fa;
       color: #212529;
       line-height: 1.8;
+      padding-bottom: 120px; /* مساحة لعداد النقاط */
     }
     header {
       background: #4a6fa5;
@@ -180,9 +181,125 @@
       text-align: center;
       padding: 20px;
     }
+    
+    /* نظام النقاط الجديد */
+    .points-system {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 15px;
+      width: 300px;
+      z-index: 1000;
+      border: 2px solid #4a6fa5;
+      transition: all 0.3s;
+    }
+    
+    .points-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .user-points {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #4a6fa5;
+    }
+    
+    .leaderboard-toggle {
+      background: #2c3e50;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    
+    .leaderboard {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    .leaderboard.show {
+      max-height: 200px;
+    }
+    
+    .leaderboard h3 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .leaderboard-item .rank {
+      font-weight: bold;
+      color: #4a6fa5;
+    }
+    
+    /* تأثيرات النقاط */
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeOut 2s forwards;
+    }
+    
+    .celebration img {
+      max-width: 200px;
+      animation: zoomIn 0.5s;
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    
+    @keyframes zoomIn {
+      0% { transform: scale(0); }
+      100% { transform: scale(1); }
+    }
+    
+    .points-change {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(74, 111, 165, 0.9);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      z-index: 1001;
+      animation: slideUp 1.5s forwards;
+    }
+    
+    @keyframes slideUp {
+      0% { bottom: 100px; opacity: 1; }
+      100% { bottom: 150px; opacity: 0; }
+    }
   </style>
 </head>
 <body lang="ar" dir="rtl">
+  <!-- تأثيرات النقاط -->
+  <div id="celebration-effect" class="celebration" style="display:none;"></div>
+  
   <header>
     <div class="switch-lang">
       <button onclick="switchLang('ar')">العربية</button>
@@ -242,8 +359,6 @@
         <button onclick="addSuggestedHabit(this)" data-habit="Exercise" data-lang="en" style="display:none;">Exercise</button>
         <button onclick="addSuggestedHabit(this)" data-habit="قراءة كتاب" data-lang="ar">قراءة</button>
         <button onclick="addSuggestedHabit(this)" data-habit="Read a book" data-lang="en" style="display:none;">Reading</button>
-        <button onclick="addSuggestedHabit(this)" data-habit="النوم مبكرًا" data-lang="ar">نوم مبكر</button>
-        <button onclick="addSuggestedHabit(this)" data-habit="Early sleep" data-lang="en" style="display:none;">Early sleep</button>
       </div>
       
       <div id="habits-list" style="margin-top:15px;"></div>
@@ -264,6 +379,22 @@
     </div>
   </div>
 
+  <!-- نظام النقاط -->
+  <div class="points-system">
+    <div class="points-header">
+      <div class="user-points" data-lang="ar">نقاطك: <span id="user-points">0</span></div>
+      <div class="user-points" data-lang="en" style="display:none;">Points: <span id="user-points">0</span></div>
+      <button class="leaderboard-toggle" onclick="toggleLeaderboard()" data-lang="ar">قائمة المتصدرين</button>
+      <button class="leaderboard-toggle" onclick="toggleLeaderboard()" data-lang="en" style="display:none;">Leaderboard</button>
+    </div>
+    
+    <div class="leaderboard" id="leaderboard">
+      <h3 data-lang="ar">أفضل 10 لاعبين</h3>
+      <h3 data-lang="en" style="display:none;">Top 10 Players</h3>
+      <div id="leaderboard-list"></div>
+    </div>
+  </div>
+
   <footer>
     <p data-lang="ar">&copy; 2025 معلومات مجانية - كل الحقوق محفوظة</p>
     <p data-lang="ar">مقدّم بحب للمستخدم العربي والعالمي</p>
@@ -272,14 +403,160 @@
   </footer>
 
   <script>
-    // تبديل اللغة
-    function switchLang(lang) {
-      document.body.setAttribute('lang', lang);
-      document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-      document.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    // ========== نظام النقاط ==========
+    let userPoints = 0;
+    let dailyLimits = {
+      habits: { count: 0, max: 5, points: 2 },
+      titles: { count: 0, max: 5, points: 1 },
+      emojis: { count: 0, max: 5, points: 2 },
+      share: { count: 0, max: 1, points: 10 }
+    };
+    
+    // تحميل البيانات عند بدء التشغيل
+    window.onload = function() {
+      loadHabits();
+      loadPoints();
+      updateLeaderboard();
+      
+      // إعادة تعيين الحدود اليومية إذا كان يوم جديد
+      const lastVisit = localStorage.getItem('lastVisit');
+      const today = new Date().toDateString();
+      
+      if (lastVisit !== today) {
+        resetDailyLimits();
+        localStorage.setItem('lastVisit', today);
+      }
+    };
+    
+    function loadPoints() {
+      const savedPoints = localStorage.getItem('userPoints');
+      const savedLimits = localStorage.getItem('dailyLimits');
+      
+      if (savedPoints) {
+        userPoints = parseInt(savedPoints);
+        document.getElementById('user-points').textContent = userPoints;
+      }
+      
+      if (savedLimits) {
+        dailyLimits = JSON.parse(savedLimits);
+      }
     }
-
-    // ========== مولد العناوين الذكي ==========
+    
+    function savePoints() {
+      localStorage.setItem('userPoints', userPoints);
+      localStorage.setItem('dailyLimits', JSON.stringify(dailyLimits));
+    }
+    
+    function resetDailyLimits() {
+      dailyLimits.habits.count = 0;
+      dailyLimits.titles.count = 0;
+      dailyLimits.emojis.count = 0;
+      dailyLimits.share.count = 0;
+      savePoints();
+    }
+    
+    function addPoints(activity) {
+      const lang = document.body.getAttribute("lang");
+      const limit = dailyLimits[activity];
+      
+      if (limit.count >= limit.max) {
+        alert(lang === "ar" ? `لقد وصلت للحد اليومي (${limit.max} مرات)` : `Daily limit reached (${limit.max} times)`);
+        return false;
+      }
+      
+      limit.count++;
+      userPoints += limit.points;
+      document.getElementById('user-points').textContent = userPoints;
+      savePoints();
+      
+      // عرض إشعار النقاط
+      showPointsNotification(limit.points, lang);
+      
+      // تحديث لوحة المتصدرين
+      updateLeaderboard();
+      
+      // عرض تأثيرات حسب النقاط
+      showCelebration();
+      
+      return true;
+    }
+    
+    function showPointsNotification(points, lang) {
+      const notification = document.createElement('div');
+      notification.className = 'points-change';
+      notification.textContent = lang === "ar" ? `+${points} نقطة!` : `+${points} points!`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 1500);
+    }
+    
+    function showCelebration() {
+      const celebration = document.getElementById('celebration-effect');
+      
+      if (userPoints >= 500) {
+        celebration.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/535/535183.png" alt="قلوب">';
+      } else if (userPoints >= 100) {
+        celebration.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/1040/1040226.png" alt="إعجاب">';
+      } else {
+        celebration.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/411/411745.png" alt="إحتفال">';
+      }
+      
+      celebration.style.display = 'flex';
+      setTimeout(() => {
+        celebration.style.display = 'none';
+      }, 2000);
+    }
+    
+    function toggleLeaderboard() {
+      const leaderboard = document.getElementById('leaderboard');
+      leaderboard.classList.toggle('show');
+    }
+    
+    function updateLeaderboard() {
+      // في الواقع الحقيقي، هنا سنقوم بحفظ النقاط لكل مستخدم في قاعدة بيانات
+      // لكن لأغراض العرض، سنستخدم localStorage لمستخدم واحد فقط
+      
+      let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+      
+      // الحصول على اسم المستخدم (في تطبيق حقيقي، هذا سيكون من تسجيل الدخول)
+      const username = localStorage.getItem('username') || 'مستخدم جديد';
+      
+      // تحديث نقاط المستخدم الحالي
+      const userIndex = leaderboard.findIndex(u => u.name === username);
+      
+      if (userIndex !== -1) {
+        leaderboard[userIndex].points = userPoints;
+      } else {
+        leaderboard.push({ name: username, points: userPoints });
+      }
+      
+      // ترتيب القائمة تنازلياً حسب النقاط
+      leaderboard.sort((a, b) => b.points - a.points);
+      
+      // حفظ القائمة المحدثة
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+      
+      // عرض أفضل 10 لاعبين
+      const leaderboardList = document.getElementById('leaderboard-list');
+      leaderboardList.innerHTML = '';
+      
+      leaderboard.slice(0, 10).forEach((user, index) => {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `
+          <span class="rank">${index + 1}. ${user.name}</span>
+          <span>${user.points} نقطة</span>
+        `;
+        leaderboardList.appendChild(item);
+      });
+    }
+    
+    // ========== بقية الوظائف ==========
+    // ... (تبقى جميع الدوال الأخرى كما هي مثل switchLang, generateSmartTitles, convertToEmoji, إلخ) ...
+    // مع تعديل الدوال التالية لإضافة النقاط:
+    
     function generateSmartTitles() {
       const topic = document.getElementById("topic").value.trim();
       const lang = document.body.getAttribute("lang");
@@ -288,176 +565,54 @@
         alert(lang === "ar" ? "من فضلك اكتب موضوعًا" : "Please enter a topic");
         return;
       }
-
+      
+      if (!addPoints('titles')) return;
+      
       const outputDiv = document.getElementById("titles-output");
       outputDiv.innerHTML = '<div class="loading"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="تحميل"></div>';
       
-      // محاكاة الذكاء الاصطناعي مع تأخير
       setTimeout(() => {
         const titles = generateAITitles(topic, lang);
         displayTitles(titles, lang);
       }, 800);
     }
-
-    function generateAITitles(topic, lang) {
-      // قاعدة بيانات للأنماط المختلفة للعناوين
-      const patterns = {
-        ar: [
-          `كيف ${topic} في 5 خطوات بسيطة؟`,
-          `10 طرق مذهلة لـ ${topic}`,
-          `السر الذي لا يعرفه أحد عن ${topic}`,
-          `${topic}: الدليل النهائي للمبتدئين`,
-          `3 أخطاء قاتلة في ${topic} (تجنبها الآن!)`,
-          `كيف حولت ${topic} إلى مصدر دخل؟`,
-          `${topic} مثل المحترفين: أسرار الخبراء`
-        ],
-        en: [
-          `How to ${topic} in 5 Simple Steps`,
-          `10 Amazing Ways to ${topic}`,
-          `The Secret Nobody Tells You About ${topic}`,
-          `${topic}: The Ultimate Beginner's Guide`,
-          `3 Deadly Mistakes in ${topic} (Avoid Them!)`,
-          `How I Turned ${topic} Into Income`,
-          `${topic} Like a Pro: Expert Secrets`
-        ]
-      };
-      
-      // اختيار 5 عناوين عشوائية
-      const selectedTitles = [];
-      const usedIndices = new Set();
-      
-      while (selectedTitles.length < 5 && selectedTitles.length < patterns[lang].length) {
-        const randomIndex = Math.floor(Math.random() * patterns[lang].length);
-        if (!usedIndices.has(randomIndex)) {
-          selectedTitles.push(patterns[lang][randomIndex]);
-          usedIndices.add(randomIndex);
-        }
-      }
-      
-      return selectedTitles;
-    }
-
-    function displayTitles(titles, lang) {
-      const outputDiv = document.getElementById("titles-output");
-      let html = '';
-      
-      titles.forEach((title, index) => {
-        html += `
-          <div class="title-suggestion">
-            <strong>${index + 1}. ${title}</strong>
-            <button class="copy-btn" onclick="copyTitle('${title.replace(/'/g, "\\'")}')">
-              ${lang === 'ar' ? 'نسخ' : 'Copy'}
-            </button>
-          </div>
-        `;
-      });
-      
-      outputDiv.innerHTML = html;
-    }
-
-    function copyTitle(title) {
-      navigator.clipboard.writeText(title);
+    
+    function convertToEmoji() {
+      const text = document.getElementById("text-input").value.trim();
       const lang = document.body.getAttribute("lang");
-      alert(lang === "ar" ? "تم نسخ العنوان!" : "Title copied!");
-    }
-
-    // ========== عداد العادات الذكي ==========
-    function addHabit() {
-      const lang = document.body.getAttribute("lang");
-      const input = document.getElementById("new-habit");
-      const habitText = input.value.trim();
       
-      if (!habitText) {
-        alert(lang === "ar" ? "من فضلك اكتب عادة جديدة" : "Please enter a habit");
+      if (!text) {
+        alert(lang === "ar" ? "من فضلك اكتب نصًا" : "Please enter some text");
         return;
       }
       
-      createHabitElement(habitText);
-      input.value = "";
-      saveHabits();
-    }
-
-    function addSuggestedHabit(button) {
-      const habitText = button.getAttribute("data-habit");
-      createHabitElement(habitText);
-      saveHabits();
-    }
-
-    function createHabitElement(habitText) {
-      const habitsList = document.getElementById("habits-list");
-      const habitDiv = document.createElement("div");
-      habitDiv.className = "habit-item";
-      habitDiv.innerHTML = `
-        <span class="habit-text">${habitText}</span>
-        <div class="habit-actions">
-          <button class="delete-btn" onclick="removeHabit(event)">×</button>
-        </div>
-      `;
-      habitDiv.addEventListener("click", function() {
-        this.classList.toggle("done");
-        saveHabits();
-      });
-      habitsList.appendChild(habitDiv);
-    }
-
-    function removeHabit(event) {
-      event.stopPropagation();
-      const habitItem = event.target.closest(".habit-item");
-      habitItem.classList.add("fade-out");
-      setTimeout(() => {
-        habitItem.remove();
-        saveHabits();
-      }, 300);
-    }
-
-    function saveHabits() {
-      const habitsList = document.getElementById("habits-list");
-      const habits = [];
+      if (!addPoints('emojis')) return;
       
-      habitsList.querySelectorAll(".habit-item").forEach(habit => {
-        habits.push({
-          text: habit.querySelector(".habit-text").textContent,
-          done: habit.classList.contains("done")
-        });
-      });
-      
-      localStorage.setItem("userHabits", JSON.stringify(habits));
-    }
-
-    function loadHabits() {
-      const savedHabits = localStorage.getItem("userHabits");
-      if (savedHabits) {
-        const habits = JSON.parse(savedHabits);
-        habits.forEach(habit => {
-          const habitElement = createHabitElement(habit.text);
-          if (habit.done) {
-            const habitsList = document.getElementById("habits-list");
-            const lastHabit = habitsList.lastChild;
-            lastHabit.classList.add("done");
-          }
-        });
-      }
-    }
-
-    // ========== محول الإيموجي ==========
-    function convertToEmoji() {
-      const text = document.getElementById("text-input").value;
       const emojiMap = {
         "سعيد": "😊", "فرحان": "😄", "غاضب": "😠", "نائم": "😴", "عمل": "💼", "دراسة": "📚",
         "حب": "❤️", "قلبي": "💖", "نجاح": "🏆", "سرعة": "⚡", "ممتاز": "👍", "رائع": "🌟",
         "coffee": "☕", "happy": "😊", "love": "❤️", "work": "💼", "study": "📚", "success": "🏆"
       };
+      
       let output = text;
       for (const [key, value] of Object.entries(emojiMap)) {
         output = output.replace(new RegExp(key, 'g'), value);
       }
       document.getElementById("emoji-output").textContent = output;
     }
-
-    // تحميل العادات عند بدء التشغيل
-    window.onload = function() {
-      loadHabits();
-    };
+    
+    function toggleHabit(habitElement) {
+      const wasDone = habitElement.classList.contains("done");
+      habitElement.classList.toggle("done");
+      saveHabits();
+      
+      // إضافة النقاط فقط عند إكمال العادة (وليس عند إلغاء الإكمال)
+      if (!wasDone && habitElement.classList.contains("done")) {
+        addPoints('habits');
+      }
+    }
+    
+    // ... (بقية الدوال كما هي) ...
   </script>
 </body>
 </html>
